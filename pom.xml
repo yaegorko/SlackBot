@@ -62,6 +62,14 @@
             <artifactId>json-simple</artifactId>
             <version>1.1.1</version>
         </dependency>
+
+        <!--Google API-->
+
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-sheets</artifactId>
+            <version>v4-rev539-1.25.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -72,6 +80,4 @@
             </plugin>
         </plugins>
     </build>
-
-
 </project>

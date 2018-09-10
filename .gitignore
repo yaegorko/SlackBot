@@ -24,3 +24,7 @@ target
 
 .idea
 *.iml
+#projects
+application.properties
+credentials.json
+UserJoinTheChannel-4c88fdd440a9.json

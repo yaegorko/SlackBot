@@ -3,6 +3,8 @@ package com.myslackbot.first.controllers;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,17 +14,18 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import static org.springframework.http.HttpHeaders.USER_AGENT;
-
 /**
  * Slack Events API присылает все на один адрес.
  */
 @RestController
+@PropertySource("application.properties")
 public class EnableEventsController {
+
+    @Value("${slack.legacy.token}")
+    private String LEGACY_TOKEN;
 
     @PostMapping(value = "/")
     public ResponseEntity<String> checkConnect(@RequestBody String body) {
-
         String challenge = null;
         try {
             System.out.println(body);
@@ -48,13 +51,19 @@ public class EnableEventsController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Получаем реальное имя пользователя по хешированному.
+     * TODO: способ deprecated, найти другой способ.
+     * @param hashUserName хешированное имя от Slack
+     * @throws IOException ошибка
+     * @throws ParseException ошибка
+     */
     private void receiveUserNameByGetRequest(String hashUserName) throws IOException, ParseException {
 
-        String url = "https://slack.com/api/users.info?token=xoxp-51509784804-51520013447-428862694260-0a0d32025725593dfd3c152b247f284a&user=" + hashUserName;
+        String url = "https://slack.com/api/users.info?token=" + LEGACY_TOKEN + "&user=" + hashUserName;
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("GET");
-       // con.setRequestProperty("User-Agent", USER_AGENT);
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
         StringBuffer response = new StringBuffer();
