@@ -26,14 +26,15 @@ public class EnableEventsController {
 
     @PostMapping(value = "/")
     public ResponseEntity<String> checkConnect(@RequestBody String body) {
-        String challenge = null;
+        String challenge;
         try {
             System.out.println(body);
             JSONParser parser = new JSONParser();
             JSONObject object = (JSONObject) parser.parse(body);
             challenge = (String) object.get("challenge");
 
-            //валидация ссылки куда Слак будет слать запросы.
+            //валидация ссылки куда Слак будет слать запросы. Выполняется 1 раз при смене ссылки в Слак
+            //https://api.slack.com/apps/ACLA3QY72/event-subscriptions?
             if (challenge != null) {
                 return new ResponseEntity<>(challenge, HttpStatus.OK);
             }
@@ -53,7 +54,7 @@ public class EnableEventsController {
 
     /**
      * Получаем реальное имя пользователя по хешированному.
-     * TODO: способ deprecated, найти другой способ.
+     * TODO: способ deprecated, после найти другой способ.
      * @param hashUserName хешированное имя от Slack
      * @throws IOException ошибка
      * @throws ParseException ошибка
@@ -66,7 +67,7 @@ public class EnableEventsController {
         con.setRequestMethod("GET");
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
         String inputLine;
-        StringBuffer response = new StringBuffer();
+        StringBuffer response = new StringBuffer(); // TODO заменить на StringBuilder
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
         }
