@@ -28,3 +28,5 @@ target
 application.properties
 credentials.json
 UserJoinTheChannel-4c88fdd440a9.json
+serviceAccountCredentials.json
+*.json
