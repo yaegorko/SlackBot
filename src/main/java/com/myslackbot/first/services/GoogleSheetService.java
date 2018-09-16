@@ -33,7 +33,6 @@ import java.util.*;
  */
 
 @Service
-//@PropertySource(value = "application.properties", ignoreResourceNotFound = true)
 public class GoogleSheetService {
 
     private final GoogleProperties googleProperties;
@@ -49,7 +48,6 @@ public class GoogleSheetService {
     private static final List<String> DRIVE_SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-
 
     public void createSheet() {
         Spreadsheet requestBody = new Spreadsheet();
@@ -106,8 +104,6 @@ public class GoogleSheetService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
     public void readFromSheet() {
@@ -118,11 +114,11 @@ public class GoogleSheetService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
      * TODO попытаться убрать Boilerplate. Параметризовать?
+     *
      * @return Sheet
      */
     private Sheets initializeSheet() {

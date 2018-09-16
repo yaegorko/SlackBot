@@ -6,9 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.myslackbot.first.config.properties.SlackProperties;
 import com.myslackbot.first.models.User;
 import com.myslackbot.first.services.GoogleSheetService;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,30 +37,26 @@ public class EnableEventsController {
 
     @PostMapping(value = "/")
     public ResponseEntity<String> checkConnect(@RequestBody String body) {
-        String challenge;
         try {
             System.out.println(body);
-            JSONParser parser = new JSONParser();
-            JSONObject object = (JSONObject) parser.parse(body);
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(body);
 
             //валидация ссылки куда Слак будет слать запросы. Выполняется 1 раз при смене ссылки в Слак
             //https://api.slack.com/apps/ACLA3QY72/event-subscriptions?
             //не забывать нажимать кнопку Save Changes.
-            challenge = (String) object.get("challenge");
+            JsonNode challenge = jsonNode.get("challenge");
             if (challenge != null) {
-                return new ResponseEntity<>(challenge, HttpStatus.OK);
+                return new ResponseEntity<>(challenge.asText(), HttpStatus.OK);
             }
 
             //обрабатываем событие на вход юзера на канал.
-            JSONObject event = (JSONObject) object.get("event");
-            String hashUserName = (String) event.get("user");
+            String hashUserName = jsonNode.get("event").get("user").asText();
             if (hashUserName != null) {
                 System.out.println(hashUserName);
-                User user = receiveUserNameByGetRequest(hashUserName);
-                sheetService.appendToSheet(user);
+                sheetService.appendToSheet(receiveUserNameByGetRequest(hashUserName));
             }
-
-        } catch (ParseException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return new ResponseEntity<>(HttpStatus.OK);
@@ -74,11 +67,9 @@ public class EnableEventsController {
      * TODO: способ deprecated, после подумать про другой способ.
      *
      * @param hashUserName хешированное имя от Slack
-     * @throws IOException    ошибка
-     * @throws ParseException ошибка
+     * @throws IOException ошибка
      */
-    private User receiveUserNameByGetRequest(String hashUserName) throws IOException, ParseException {
-
+    private User receiveUserNameByGetRequest(String hashUserName) throws IOException {
         String url = "https://slack.com/api/users.info?token=" + slackProperties.getLegacyToken() + "&user=" + hashUserName;
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();

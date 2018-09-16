@@ -31,4 +31,3 @@ public class GoogleProperties {
         this.spreadsheetId = spreadsheetId;
     }
 }
-
