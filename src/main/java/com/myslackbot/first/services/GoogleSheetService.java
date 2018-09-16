@@ -10,20 +10,22 @@ import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.Permission;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
+import com.myslackbot.first.config.properties.GoogleProperties;
+import com.myslackbot.first.models.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
- * TODO: не рабобтают значения из @Value, после разобраться.
  * Сервис работы с GoogleSheet
  * 1. Создать таблицу createSheet (или предоставить вручную доступ сервисному аккаунту из serviceAccountCredentials.json)
  * 2. Работать с ней.
@@ -31,19 +33,23 @@ import java.util.List;
  */
 
 @Service
-@PropertySource(value = "application.properties", ignoreResourceNotFound = true)
+//@PropertySource(value = "application.properties", ignoreResourceNotFound = true)
 public class GoogleSheetService {
 
-    @Value("${google.spreadsheet.id}")
-    private String SHEET_ID = "1K4P6N1v3deXj-xd7ed-QNX5LlEVUruJyhAUzg6Yhu_o";
-    @Value("${app.name}")
-    private String APPLICATION_NAME = "SlackBot";
+    private final GoogleProperties googleProperties;
 
+    @Autowired
+    public GoogleSheetService(GoogleProperties googleProperties) {
+        this.googleProperties = googleProperties;
+    }
+
+    //TODO почему работает только с абсолютным путем?
     private static final String KEY_FILE_LOCATION = "/home/egor/projects/SlackBot/src/main/resources/serviceAccountCredentials.json";
     private static final List<String> SHEET_SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
     private static final List<String> DRIVE_SCOPES = Collections.singletonList(DriveScopes.DRIVE);
 
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+
 
     public void createSheet() {
         Spreadsheet requestBody = new Spreadsheet();
@@ -56,7 +62,6 @@ public class GoogleSheetService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -64,27 +69,51 @@ public class GoogleSheetService {
      * Доступ на чтение.
      * TODO параметры.
      */
-    public void setAccessToSheetByURL() {
+    public void setAccessToSheetByEmail() {
         Drive drive = initializeDrive();
         Permission permission = new Permission()
                 .setType("user")
-                .setRole("reader")
+                .setRole("writer")
                 .setEmailAddress("yaegorko@gmail.com");
         try {
-            drive.permissions().create(SHEET_ID, permission).execute();
+            drive.permissions().create(googleProperties.getSpreadsheetId(), permission).execute();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void writeToSheet() {
+    /**
+     * Добавляем запись в конец таблицы.
+     * Ссылка для тестирования запросов на запись.
+     * https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/batchUpdate?apix=true
+     */
+    public void appendToSheet(User user) {
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+
+        Sheets sheet = initializeSheet();
+        ValueRange appendBody = new ValueRange()
+                .setValues(Arrays.asList(Arrays.asList(dtf.format(now), user.getName(), user.getEmail())));
+        try {
+            AppendValuesResponse appendResult = sheet.spreadsheets().values()
+                    .append(googleProperties.getSpreadsheetId(), "A1", appendBody)
+                    .setValueInputOption("USER_ENTERED")
+                    .setInsertDataOption("INSERT_ROWS") //добавляем данные в новую строку, а не перезаписываем.
+                    .setIncludeValuesInResponse(true)
+                    .execute();
+            System.out.println(appendResult);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
     }
 
     public void readFromSheet() {
-            Sheets sheet = initializeSheet();
+        Sheets sheet = initializeSheet();
         try {
-            ValueRange result = sheet.spreadsheets().values().get(SHEET_ID, "A1:C").execute();
+            ValueRange result = sheet.spreadsheets().values().get(googleProperties.getSpreadsheetId(), "A1:C").execute();
             System.out.println(result);
         } catch (IOException e) {
             e.printStackTrace();
@@ -94,33 +123,29 @@ public class GoogleSheetService {
 
     /**
      * TODO попытаться убрать Boilerplate. Параметризовать?
-     * @return
+     * @return Sheet
      */
     private Sheets initializeSheet() {
-        HttpTransport httpTransport = null;
+        HttpTransport httpTransport;
         try {
             httpTransport = GoogleNetHttpTransport.newTrustedTransport();
             FileInputStream fileInputStream = new FileInputStream(KEY_FILE_LOCATION);
             GoogleCredential credential = GoogleCredential.fromStream(fileInputStream).createScoped(SHEET_SCOPES);
-            return new Sheets.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME).build();
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+            return new Sheets.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(googleProperties.getAppName()).build();
+        } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();
         }
         return null;
     }
 
     private Drive initializeDrive() {
-        HttpTransport httpTransport = null;
+        HttpTransport httpTransport;
         try {
             httpTransport = GoogleNetHttpTransport.newTrustedTransport();
             FileInputStream fileInputStream = new FileInputStream(KEY_FILE_LOCATION);
             GoogleCredential credential = GoogleCredential.fromStream(fileInputStream).createScoped(DRIVE_SCOPES);
-            return new Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME).build();
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+            return new Drive.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(googleProperties.getAppName()).build();
+        } catch (GeneralSecurityException | IOException e) {
             e.printStackTrace();
         }
         return null;
