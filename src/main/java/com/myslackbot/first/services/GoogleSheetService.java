@@ -14,7 +14,7 @@ import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.myslackbot.first.config.properties.GoogleProperties;
-import com.myslackbot.first.models.User;
+import com.myslackbot.first.models.Profile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -85,14 +85,14 @@ public class GoogleSheetService {
      * Ссылка для тестирования запросов на запись.
      * https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/batchUpdate?apix=true
      */
-    public void appendToSheet(User user) {
+    public void appendToSheet(Profile profile) {
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
 
         Sheets sheet = initializeSheet();
         ValueRange appendBody = new ValueRange()
-                .setValues(Arrays.asList(Arrays.asList(dtf.format(now), user.getName(), user.getEmail())));
+                .setValues(Arrays.asList(Arrays.asList(dtf.format(now), profile.getName(), profile.getEmail())));
         try {
             AppendValuesResponse appendResult = sheet.spreadsheets().values()
                     .append(googleProperties.getSpreadsheetId(), "A1", appendBody)

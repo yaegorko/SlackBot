@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class User {
+public class Profile {
 
     @JsonProperty("real_name")
     private String name;

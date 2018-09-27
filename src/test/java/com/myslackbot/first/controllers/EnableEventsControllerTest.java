@@ -3,14 +3,14 @@ package com.myslackbot.first.controllers;
 import com.myslackbot.first.config.properties.GoogleProperties;
 import com.myslackbot.first.config.properties.SlackProperties;
 import com.myslackbot.first.services.GoogleSheetService;
-import org.json.simple.parser.ParseException;
+
 import org.junit.Test;
 
 import java.io.IOException;
 
 public class EnableEventsControllerTest {
 
-    EnableEventsController eventsController = new EnableEventsController(new GoogleSheetService(new GoogleProperties()), new SlackProperties());
+  //  EnableEventsController eventsController = new EnableEventsController(new GoogleSheetService(new GoogleProperties()), new SlackProperties());
 
 //    @Test
 //    public void testGetRealUserName() {

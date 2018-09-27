@@ -1,7 +1,7 @@
 //package com.myslackbot.first.services;
 //
 //import com.myslackbot.first.config.properties.GoogleProperties;
-//import com.myslackbot.first.models.User;
+//import com.myslackbot.first.models.Profile;
 //import org.junit.Test;
 //
 //import static org.junit.Assert.*;
@@ -30,7 +30,7 @@
 //
 //    @Test
 //    public void testAppendToSheet() {
-//        sheetService.appendToSheet(new User("Egor", "yaegorko@gmail.com"));
+//        sheetService.appendToSheet(new Profile("Egor", "yaegorko@gmail.com"));
 //        System.out.println();
 //    }
 //}
