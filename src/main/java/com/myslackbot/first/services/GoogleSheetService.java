@@ -26,7 +26,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * Сервис работы с GoogleSheet
+ * Сервис работы с GoogleSheet с помощью сервис аккаунтов.
  * 1. Создать таблицу createSheet (или предоставить вручную доступ сервисному аккаунту из serviceAccountCredentials.json)
  * 2. Работать с ней.
  * Получить доступ из браузера к созданной таблице получится только с помощью Google Drive API setAccessToSheet.
@@ -117,8 +117,7 @@ public class GoogleSheetService {
     }
 
     /**
-     * TODO попытаться убрать Boilerplate. Параметризовать?
-     *
+     * TODO попытаться сократить. Параметризовать?
      * @return Sheet
      */
     private Sheets initializeSheet() {

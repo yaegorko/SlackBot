@@ -31,7 +31,7 @@ public class SlackService {
 
     /**
      * Получаем реальное имя пользователя по хешированному.
-     * TODO: способ deprecated???, после подумать про другой способ.
+     * TODO: после подумать про другой способ.
      *
      * @param hashUserName хешированное имя от Slack
      * @throws IOException ошибка
@@ -55,7 +55,7 @@ public class SlackService {
     }
 
     /**
-     * Получаем список пользователей и "имеилов" с general.
+     * Получаем список пользователей и емеилов с general.
      */
     public List<Member> receiveUsers() throws IOException {
         String url = "https://slack.com/api/users.list?token="+ slackProperties.getLegacyToken() + "&pretty=1";
@@ -75,6 +75,11 @@ public class SlackService {
         return objectMapper.readValue(actualObj.toString(), new TypeReference<List<Member>>() {});
     }
 
+    /**
+     * Сохраняем в гугл таблицу
+     * TODO: разобраться с количеством запросов.
+     * @param userList
+     */
     public void saveAllUserFromGeneral(List<Member> userList) {
         for (Member member: userList) {
             googleSheetService.appendToSheet(member.getProfile());
